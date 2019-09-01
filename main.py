@@ -76,9 +76,11 @@ while carryOn:
     
     # drawing all sprites
     screen.blit(background, (0, 0))
-    
-    all_sprites_list.draw(screen)
+
+    # Calls update() method on every sprite in the list and draws them
     all_sprites_list.update()
+    all_sprites_list.draw(screen)
+    
      
     # refresh screen.
     pygame.display.flip()
