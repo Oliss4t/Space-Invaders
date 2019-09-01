@@ -6,8 +6,8 @@ class Ship(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         # Draw the ship
-        self.image = pygame.image.load("images\\shiplvl1.png").convert_alpha() 
-
+        self.image = pygame.transform.scale(pygame.image.load("images\\shiplvl1.png").convert_alpha(), (111, 93))
+     
         # level_id for the ship-"evolvement" 
         self.level = 1
         self.width= self.image.get_size()[0]
