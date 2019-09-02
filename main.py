@@ -32,6 +32,8 @@ all_aliens_list = pygame.sprite.Group()
 # list contains all the bullets in the game.
 all_bullets_list = pygame.sprite.Group()
 
+all_alien_bullets_list =pygame.sprite.Group()
+
 #def createAliens(numbersofrows, numberofaliensinrow):
 #    for i in range(numbersofrows):
 #        for ii in range(numberofaliensinrow):
@@ -128,12 +130,18 @@ while carryOn:
  
     # ------ Game logic -------------------------------------------------------
     # Calls update() method on every sprite in the list 
+    alienBullets = aliens.random_shoot()
+    all_sprites_list.add(alienBullets)
+    all_alien_bullets_list.add(alienBullets)
     all_sprites_list.update()
     aliens.update()
+    
     # Find all sprites that collide between two groups and kills them from their group
     alien_hit_list = pygame.sprite.groupcollide(all_bullets_list, aliens, True, True, False)
-
-
+    
+    lives = pygame.sprite.spritecollide(playerShip, aliens, True)
+    #if (pygame.sprite.spritecollideany(playerShip, all_alien_bullets_list)) is not None:
+        
  
     # --- Drawing code --------------------------------------------------------
     
@@ -141,6 +149,11 @@ while carryOn:
     screen.blit(background, (0, 0))
     all_sprites_list.draw(screen)
     aliens.draw(screen)
+
+    if (pygame.sprite.spritecollideany(playerShip, all_alien_bullets_list)) is not None:
+        font = pygame.font.Font(None, 36)
+        text = font.render("GOT HIT MATE", 1, (255, 255, 255))
+        screen.blit(text, (500,500))
     
      
     # refresh screen.

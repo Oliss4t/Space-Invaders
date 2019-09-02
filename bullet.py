@@ -11,5 +11,5 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self, *args):
         self.rect.y += self.speed
-        if self.rect.y < 15:
+        if self.rect.y < 15 or self.rect.y > 1200:
             self.kill()
