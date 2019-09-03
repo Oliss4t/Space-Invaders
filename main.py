@@ -90,7 +90,7 @@ for row in range(crows):
         alien.rect.x = ALIENDEFAULTPOSITION + ((column) * devided_space)
         alien.rect.y = ALIENDEFAULTPOSITION + ((row) * ALIENDEFAULTHIGHT )
         aliens.add(alien)
-
+aliens.init_bottom_aliens()
 
 # flag for continuing the game
 carryOn = True
@@ -130,9 +130,10 @@ while carryOn:
  
     # ------ Game logic -------------------------------------------------------
     # Calls update() method on every sprite in the list 
-    alienBullets = aliens.random_shoot()
-    all_sprites_list.add(alienBullets)
-    all_alien_bullets_list.add(alienBullets)
+    alienBullet = aliens.random_shoot()
+    if alienBullet is not None:
+        all_sprites_list.add(alienBullet)
+        all_alien_bullets_list.add(alienBullet)
     all_sprites_list.update()
     aliens.update()
     

@@ -2,6 +2,7 @@ import pygame
 import numpy as np  
 from bullet import Bullet
 from alien import Alien
+import random
 
 class AlienGroup(pygame.sprite.Group):
     def __init__(self, columns, rows, devided_space, SCREENWIDTH):#11,5
@@ -12,58 +13,59 @@ class AlienGroup(pygame.sprite.Group):
         self.devided_space = devided_space
         self.screenwidth = SCREENWIDTH
         self.speed =1
+        self.time =0
+        self.timemodulo = 2
+        self.shootfactor = 0.06
         
         # 2d array which keeps track of the alive aliens
         self.alivealiens = [[None] * columns for y in range(rows)] 
         self.leftAliveAlien = None
         self.rightAliveAlien = None
-        self.bottomAliveAliens = self.init_bottom_aliens()
+        self.bottomAliveAliens = []
         self.alienCount= columns*rows
-        self.alienDeadCount =0
+        self.alienDeadCount = 1
 
+        
     def init_bottom_aliens(self):
         bottomAliveAliens = []
         for i in range(self.columns):
-                bottomAliveAliens.append([self.rows-1,i])
-        return bottomAliveAliens   
+                bottomAliveAliens.append(self.alivealiens[self.rows-1][i])
+        self.bottomAliveAliens = bottomAliveAliens  
 
     def update(self):
-       # try:
-        if (self.rightAliveAlien.rect.x + self.speed < self.screenwidth- self.rightAliveAlien.width) and (self.leftAliveAlien.rect.x + self.speed > 0):
-            for alien in self:
-                alien.rect.x += self.speed
-        else:
-            for alien in self:
-                alien.rect.y += alien.hight
-            self.speed = self.speed * -1
-       # except:
-       #     pass
-       
-
+        self.time +=1
+        if (self.time%self.timemodulo ==0):
+            if (self.rightAliveAlien.rect.x + self.speed < self.screenwidth- self.rightAliveAlien.width) and (self.leftAliveAlien.rect.x + self.speed > 0):
+                for alien in self:
+                    alien.rect.x += self.speed
+            else:
+                for alien in self:
+                    alien.rect.y += alien.hight
+                self.speed = self.speed * -1      
 
     def add_internal(self, *sprites):
         super(AlienGroup, self).add_internal(*sprites)
         for s in sprites:
             self.alivealiens[s.row][s.column] = s
         self.leftAliveAlien = self.alivealiens[0][0] #[0][0]
-        self.rightAliveAlien = self.alivealiens[self.rows-1][self.columns-1]#[4][10]#
+        self.rightAliveAlien = self.alivealiens[self.rows-1][self.columns-1] #[4][10]
         
 
     def remove_internal(self, *sprites):
         super(AlienGroup, self).remove_internal(*sprites)
         for s in sprites:
             self.kill(s)
-        #self.update_speed()
+        
 
 
     # check if there arent any alive aliens in this column
     def update_left_outer_aliens(self, column):
         if column <self.columns:
-            c=0
+            alienInColumn = False
             for j in range(self.rows): 
                 if self.alivealiens[j][column]:
-                    c+=1
-            if c==0:
+                    alienInColumn = True
+            if not alienInColumn:
                 self.update_left_outer_aliens(column+1)
             else:
                 for j in range(self.rows): 
@@ -73,11 +75,11 @@ class AlienGroup(pygame.sprite.Group):
 
     def update_right_outer_aliens(self, column):
         if column >=0:
-            c=0
+            alienInColumn = False
             for j in range(self.rows): 
                 if self.alivealiens[j][column]:
-                    c+=1
-            if c==0:
+                    alienInColumn = True
+            if not alienInColumn:
                 self.update_right_outer_aliens(column-1)
             else:
                 for j in range(self.rows): 
@@ -91,22 +93,15 @@ class AlienGroup(pygame.sprite.Group):
         for i in range(collums):
             for j in reversed(range(rows)):
                 if self.alivealiens[j][i]:
-                    self.bottomAliveAliens.append([j,i])
+                    self.bottomAliveAliens.append(self.alivealiens[j][i])
                     break
-                
-    #def update_right_outer_aliens(self, column):
-    #    if column >=0:
-    #        if not self.alivealiens[:][column]:
-    #            update_right_outer_aliens(column-1)
-    #        else:
-    #            self.rightAliveAlien = next(iter(self.alivealiens[:][column]),None)
-    
+
+    # a random bottom alien shoots with the probability alienDeadCount/allAliens
     def random_shoot(self):
-        bullets=[]
-        for bottomalien in self.bottomAliveAliens:
-            bullet = Bullet(self.alivealiens[bottomalien[0]][bottomalien[1]].rect.x, self.alivealiens[bottomalien[0]][bottomalien[1]].rect.y, +10)
-            bullets.append(bullet)
-        return bullets
+        if(random.random() < (self.alienDeadCount/self.alienCount)*self.shootfactor):
+            randomBottomAlien = random.randrange(len(self.bottomAliveAliens))
+            bullet = Bullet(self.bottomAliveAliens[randomBottomAlien].rect.x +29 , self.bottomAliveAliens[randomBottomAlien].rect.y +27, +10)
+            return bullet
 
 
     def update_speed(self):
@@ -125,6 +120,7 @@ class AlienGroup(pygame.sprite.Group):
         #print(a.shape)
         #print(self.columns-1)
         self.update_right_outer_aliens(self.columns-1)
-        self.update_bottom_aliens(self.rows-1,self.columns-1)
+        self.update_bottom_aliens(self.rows,self.columns)
+        #self.speed *=1.1
 
 
