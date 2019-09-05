@@ -15,19 +15,19 @@ class Ship(pygame.sprite.Sprite):
         # Fetch a rectangle object that has the dimensions of the image.
         self.rect = self.image.get_rect()
 
-    def getHight(self):
+    def get_hight(self):
         return self.hight
 
-    def getWidth(self):
+    def get_width(self):
         return self.width
 
     # move ship right
-    def moveRight(self, pixels, screenWidth):
-        if (self.rect.x + pixels) <= (screenWidth - self.width):
+    def move_right(self, pixels, screen_width):
+        if (self.rect.x + pixels) <= (screen_width - self.width):
             self.rect.x += pixels
     
     # move ship left
-    def moveLeft(self, pixels, screenWidth):
+    def move_left(self, pixels, screen_width):
         if (self.rect.x - pixels) >= 0:
             self.rect.x -= pixels
     

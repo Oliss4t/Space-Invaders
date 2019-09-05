@@ -3,7 +3,7 @@ import pygame
 class Alien(pygame.sprite.Sprite):
     #This class represents an Alien. It derives from the "Sprite" class in Pygame.
     
-    def __init__(self,screenWidth,screenHight,row, column):
+    def __init__(self,screen_width,screen_hight,row, column):
         super().__init__()
         # Draw the Alien
         self.image = pygame.transform.scale(pygame.image.load("images\\alien1.png").convert_alpha(),(64,87))
@@ -13,19 +13,19 @@ class Alien(pygame.sprite.Sprite):
         self.column = column
         # Fetch a rectangle object that has the dimensions of the image.
         self.rect = self.image.get_rect()
-        self.screenWidth = screenWidth
-        self.screenHight = screenHight
+        self.screen_width = screen_width
+        self.screen_hight = screen_hight
         self.speed = 1
 
-    def getHight(self):
+    def get_hight(self):
         return self.hight
 
-    def getWidth(self):
+    def get_width(self):
         return self.width
 
    #def update(self, *args):
-        #pygame.game.screen.blit(self.image, self.rect)
-   #     if (self.rect.x + self.speed < self.screenWidth- self.width) and (self.rect.x + self.speed > 0):
+   #     pygame.game.screen.blit(self.image, self.rect)
+   #     if (self.rect.x + self.speed < self.screen_width- self.width) and (self.rect.x + self.speed > 0):
    #         self.rect.x += self.speed
    #     else:
    #         self.rect.y += self.hight
