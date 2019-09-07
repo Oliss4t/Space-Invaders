@@ -78,22 +78,25 @@ class AlienGroup(pygame.sprite.Group):
 
     # a random bottom alien shoots with the probability alien_dead_count/allAliens
     def random_shoot(self):
-        if self.bottom_alive_aliens is not []:
+        if len(self.bottom_alive_aliens) > 0:
             if(random.random() < (self.alien_dead_count/self.alien_count)*self.shoot_factor):
                 random_bottom_alien = random.randrange(len(self.bottom_alive_aliens))
                 bullet = Bullet(self.bottom_alive_aliens[random_bottom_alien].rect.x +29 , self.bottom_alive_aliens[random_bottom_alien].rect.y +27, +10)
                 return bullet
 
-    def kill(self, alien):
-        self.alive_aliens[alien.row][alien.column] = None
-        self.alien_dead_count +=1
-        self.update_left_outer_aliens(0)
-        self.update_right_outer_aliens(self.columns-1)
-        self.update_bottom_aliens(self.rows,self.columns)
+    def update_speed(self):
         if self.alien_dead_count%4==0:
             if self.speed > 0:
                 self.speed +=1
             else:
                 self.speed -=1
+
+    def kill(self, alien):
+        self.alive_aliens[alien.row][alien.column] = None
+        self.update_bottom_aliens(self.rows,self.columns)
+        self.alien_dead_count +=1
+        self.update_left_outer_aliens(0)
+        self.update_right_outer_aliens(self.columns-1)
+        self.update_speed()
 
 

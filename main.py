@@ -8,6 +8,8 @@ from ship import Ship
 from alien import Alien
 from bullet import Bullet
 from aliengroup import AlienGroup
+from asteroid import Asteroid
+from asteroid_method import create_asteroid_ellipse
 # -----------------------------------------------------------------------------
 # Constants and global variables
 # -----------------------------------------------------------------------------
@@ -60,6 +62,18 @@ def make_aliens(columns,rows):
             aliens.add(alien)
 #    self.enemies = enemies
 
+def make_asteroid(size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids):
+    asteroid_group = pygame.sprite.Group()
+    screen_space_of_all_asteroids=SCREEN_WIDTH*0.9
+    screen_space_of_one_asteroid= screen_space_of_all_asteroids/number_of_asteroids
+    screen_space_start = (SCREEN_WIDTH*0.1)/2
+    screen_asteroid_start_offset=(screen_space_of_one_asteroid-width_of_asteroid)/2
+    for i in range(number_of_asteroids):
+        asteroid_group.add(create_asteroid_ellipse(size_of_asteroid_pice,screen_space_start + screen_space_of_one_asteroid*i+screen_asteroid_start_offset
+                                                    , SCREEN_HEIGHT*0.7, screen_space_start + screen_space_of_one_asteroid*i+screen_asteroid_start_offset+width_of_asteroid
+                                                    , SCREEN_HEIGHT*0.7+heigt_of_asteroid,COLOR_WHITE,fill = True))
+    return asteroid_group
+    
 def make_enemies_shoot(self):
     if (time.get_ticks() - self.timer) > 700 and self.enemies:
         enemy = self.enemies.random_bottom()
@@ -98,6 +112,13 @@ def play_function(difficulty, font, test=False):
     all_bullets_list = pygame.sprite.Group()
 
     all_alien_bullets_list =pygame.sprite.Group()
+
+    #asteroid = Asteroid(50,50,50,COLOR_WHITE)
+    #all_sprites_list.add(asteroid)
+    #size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids
+    all_asteroids_list = make_asteroid(15,100,60,4)
+
+    all_sprites_list.add(all_asteroids_list)
 
     # creat and add the player to the list of objects
     player_ship = Ship()
@@ -211,7 +232,13 @@ def play_function(difficulty, font, test=False):
             
             # Find all sprites that collide between two groups and kills them from their group
             alien_hit_list = pygame.sprite.groupcollide(all_bullets_list, aliens, True, True, False)
+
+
+            asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, all_bullets_list, True, True)
+            asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, all_alien_bullets_list, True, True)
+            asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, aliens, True, False)
             
+    
             lives = pygame.sprite.spritecollide(player_ship, aliens, True)
             #if (pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list)) is not None:
                 
