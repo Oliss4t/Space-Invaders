@@ -9,13 +9,14 @@ from alien import Alien
 from bullet import Bullet
 from aliengroup import AlienGroup
 from asteroid import Asteroid
-from asteroid_method import create_asteroid_ellipse
+from asteroid_method import create_asteroid_ellipse, create_asteroid_ellipse2, create_asteroid_ellipse3
 # -----------------------------------------------------------------------------
 # Constants and global variables
 # -----------------------------------------------------------------------------
 ABOUT = ['pygameMenu {0}'.format(pygameMenu.__version__),'Author: @{0}'.format('Tassilo Henninger'),pygameMenu.locals.TEXT_NEWLINE,'Email: {0}'.format('tassilo.henninger@gmail.com')]
 COLOR_BLACK = ( 0, 0, 0)
 COLOR_WHITE = ( 255, 255, 255)
+COLOR_GREY = (140,140,140)
 SCREEN_WIDTH=1200
 SCREEN_HEIGHT=900
 ALIEN_DEFAULT_POSITION= 50
@@ -62,7 +63,7 @@ def make_aliens(columns,rows):
             aliens.add(alien)
 #    self.enemies = enemies
 
-def make_asteroid(size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids):
+def make_asteroid(size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids,color):
     asteroid_group = pygame.sprite.Group()
     screen_space_of_all_asteroids=SCREEN_WIDTH*0.9
     screen_space_of_one_asteroid= screen_space_of_all_asteroids/number_of_asteroids
@@ -71,7 +72,7 @@ def make_asteroid(size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,numb
     for i in range(number_of_asteroids):
         asteroid_group.add(create_asteroid_ellipse(size_of_asteroid_pice,screen_space_start + screen_space_of_one_asteroid*i+screen_asteroid_start_offset
                                                     , SCREEN_HEIGHT*0.7, screen_space_start + screen_space_of_one_asteroid*i+screen_asteroid_start_offset+width_of_asteroid
-                                                    , SCREEN_HEIGHT*0.7+heigt_of_asteroid,COLOR_WHITE,fill = True))
+                                                    , SCREEN_HEIGHT*0.7+heigt_of_asteroid,color,fill = True))
     return asteroid_group
     
 def make_enemies_shoot(self):
@@ -116,7 +117,11 @@ def play_function(difficulty, font, test=False):
     #asteroid = Asteroid(50,50,50,COLOR_WHITE)
     #all_sprites_list.add(asteroid)
     #size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids
-    all_asteroids_list = make_asteroid(15,100,60,4)
+    
+    all_asteroids_list = make_asteroid(10,100,60,4,COLOR_GREY)
+    #all_asteroids_list = pygame.sprite.Group()
+    asteroids= create_asteroid_ellipse3(1,100,600,300,700,COLOR_WHITE,False)
+    all_asteroids_list.add(asteroids)
 
     all_sprites_list.add(all_asteroids_list)
 
