@@ -3,10 +3,18 @@ import pygame
 class Alien(pygame.sprite.Sprite):
     #This class represents an Alien. It derives from the "Sprite" class in Pygame.
     
-    def __init__(self,screen_width,screen_hight,row, column):
+    def __init__(self,screen_width,screen_hight,row, column,alien_type):
         super().__init__()
         # Draw the Alien
-        self.image = pygame.transform.scale(pygame.image.load("images\\alien1.png").convert_alpha(),(64,87))
+        if alien_type ==1:
+            self.image = pygame.transform.scale(pygame.image.load("images\\alien1.png").convert_alpha(),(64,87))
+            self.points = 10
+        if alien_type ==2:
+            self.image = pygame.transform.scale(pygame.image.load("images\\alien2.png").convert_alpha(),(64,87))
+            self.points = 20
+        if alien_type ==3:
+            self.image = pygame.transform.scale(pygame.image.load("images\\alien3.png").convert_alpha(),(64,87))
+            self.points = 30
         self.width= self.image.get_size()[0]
         self.hight= self.image.get_size()[1]
         self.row = row
