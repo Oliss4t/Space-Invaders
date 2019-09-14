@@ -9,6 +9,7 @@ from alien import Alien
 from bullet import Bullet
 from aliengroup import AlienGroup
 from asteroid import Asteroid
+from player_life import Player_Life
 from asteroid_method import create_asteroid_ellipse, create_asteroid_ellipse2, create_asteroid_ellipse3
 
 ABOUT = ['pygameMenu {0}'.format(pygameMenu.__version__),'Author: @{0}'.format('Tassilo Henninger'),pygameMenu.locals.TEXT_NEWLINE,'Email: {0}'.format('tassilo.henninger@gmail.com')]
@@ -44,7 +45,7 @@ class SpaceInvaders(object):
         self.about_menu = None
         self.main_menu = None
         self.pause_menu = None
-
+ 
     # -----------------------------------------------------------------------------
     # Constants and global variables
     # -----------------------------------------------------------------------------
@@ -114,6 +115,15 @@ class SpaceInvaders(object):
             player_ship.rect.y = current_y
         return player_ship
 
+    def load_lifes(self,count):
+        life_draw_width =SCREEN_WIDTH *0.95
+        life_draw_hight =SCREEN_HEIGHT *0.05
+        player_lifes = []
+        for life in range(count):
+            player_life = Player_Life(life_draw_width - 50 *life ,life_draw_hight)
+            player_lifes.append(player_life)
+        return player_lifes
+
     def play_function(self,difficulty, font, test=False):
 
         point_counter = 0
@@ -122,13 +132,22 @@ class SpaceInvaders(object):
         difficulty = difficulty[0]
         assert isinstance(difficulty, str)
 
-  
+        asteroid_init_params = {}
+        alien_init_params = {}
+        player_lives = None
+
         if difficulty == 'EASY':
-            f = font.render('Playing as a baby (easy)', 1, COLOR_WHITE)
+            asteroid_init_params = {"size":10,"count":4,"width":100,"heigt":60,"color":COLOR_GREY}
+            alien_init_params = {"columns":5,"rows":3,"alien_type_list":[3,2,1]}
+            player_lives = 3
         elif difficulty == 'MEDIUM':
-            f = font.render('Playing as a kid (medium)', 1, COLOR_WHITE)
+            asteroid_init_params = {"size":10,"count":3,"width":100,"heigt":60,"color":COLOR_GREY}
+            alien_init_params = {"columns":6,"rows":4,"alien_type_list":[3,2,1,1]}
+            player_lives = 2
         elif difficulty == 'HARD':
-            f = font.render('Playing as a champion (hard)', 1, COLOR_WHITE)
+            asteroid_init_params = {"size":10,"count":2,"width":100,"heigt":60,"color":COLOR_GREY}
+            alien_init_params = {"columns":8,"rows":5,"alien_type_list":[3,2,2,1,1]}
+            player_lives = 1
         else:
             raise Exception('Unknown difficulty {0}'.format(difficulty))
         
@@ -138,24 +157,29 @@ class SpaceInvaders(object):
         all_bullets_list = pygame.sprite.Group()
 
         all_alien_bullets_list =pygame.sprite.Group()
+      
 
         #asteroid = Asteroid(50,50,50,COLOR_WHITE)
         #all_sprites_list.add(asteroid)
         #size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids
         
-        all_asteroids_list = self.make_asteroid(10,100,60,4,COLOR_GREY)
+        all_asteroids_list = self.make_asteroid(asteroid_init_params["size"],asteroid_init_params["width"],asteroid_init_params["heigt"],asteroid_init_params["count"],asteroid_init_params["color"])
+    
+        player_life_sprite_list = self.load_lifes(player_lives)
+
         #all_asteroids_list = pygame.sprite.Group()
-        asteroids= create_asteroid_ellipse3(1,100,600,300,700,COLOR_WHITE,False)
-        all_asteroids_list.add(asteroids)
+        #asteroids= create_asteroid_ellipse3(1,100,600,300,700,COLOR_WHITE,False)
+        #all_asteroids_lisst.add(asteroids)
 
         all_sprites_list.add(all_asteroids_list)
+        all_sprites_list.add(player_life_sprite_list)
 
         # creat and add the player to the list of objects
         player_ship =self.load_player(0,0,1)
         all_sprites_list.add(player_ship) 
 
         #create aliens
-        aliens=self.make_aliens(8,3,[3,2,1])
+        aliens=self.make_aliens(alien_init_params["columns"],alien_init_params["rows"],alien_init_params["alien_type_list"])
 
         
 
@@ -200,7 +224,9 @@ class SpaceInvaders(object):
         RUNNING, PAUSE, EXIT = 0, 1, 2
         state = RUNNING
         # -------- Main Program Loop -----------
-        while True:
+        while player_lives>=1:
+            
+
             # Clock tick 60 fps
             self.clock.tick(60)
 
@@ -279,7 +305,7 @@ class SpaceInvaders(object):
                 asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, aliens, True, False)
                 
         
-                lives = pygame.sprite.spritecollide(player_ship, aliens, True)
+                #lives = pygame.sprite.spritecollide(player_ship, aliens, True)
                 #if (pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list)) is not None:
                     
             
@@ -287,16 +313,23 @@ class SpaceInvaders(object):
                 
                 # drawing all sprites
                 self.screen.blit(self.background, (0, 0))
-                all_sprites_list.draw(self.screen)
+                
                 aliens.draw(self.screen)
+                all_sprites_list.draw(self.screen)
+                
+
                 point_counter_score = pygame.font.SysFont('Consolas', 32).render(str(point_counter), True, pygame.color.Color('White'))
                 self.screen.blit(point_counter_score, (100, 100))
 
 
-                if (pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list)) is not None:
+                if pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list) is not None or pygame.sprite.spritecollideany(player_ship, aliens) is not None:
                     font = pygame.font.Font(None, 36)
                     text = font.render("GOT HIT MATE", 1, (255, 255, 255))
                     self.screen.blit(text, (500,500))
+                    print(len(player_life_sprite_list))
+                    ############## wird komsicher weise öfter aufgerufen#############
+                    all_sprites_list.remove(player_life_sprite_list[-1])
+                    player_life_sprite_list = player_life_sprite_list[:-1]
             elif state == PAUSE:
                 self.screen.blit(pause_text, (100, 100))
                 self.pause_menu.mainloop(events, disable_loop=test) 
