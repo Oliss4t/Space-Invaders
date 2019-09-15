@@ -10,6 +10,7 @@ from bullet import Bullet
 from aliengroup import AlienGroup
 from asteroid import Asteroid
 from player_life import Player_Life
+from text import Text
 from asteroid_method import create_asteroid_ellipse, create_asteroid_ellipse2, create_asteroid_ellipse3
 
 ABOUT = ['pygameMenu {0}'.format(pygameMenu.__version__),'Author: @{0}'.format('Tassilo Henninger'),pygameMenu.locals.TEXT_NEWLINE,'Email: {0}'.format('tassilo.henninger@gmail.com')]
@@ -29,6 +30,31 @@ WINDOW_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 
 
+shiftDown = False
+validChars = "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./"
+shiftChars = '~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'
+class TextBox(pygame.sprite.Sprite):
+        def __init__(self):
+            pygame.sprite.Sprite.__init__(self)
+            self.text = ""
+            self.font = pygame.font.SysFont('Consolas', 64)
+            self.image = self.font.render("Enter your name", True, pygame.color.Color('White'))
+            self.rect = self.image.get_rect()
+
+        def add_chr(self, char):
+            global shiftDown
+            if char in validChars and not shiftDown:
+                self.text += char
+            elif char in validChars and shiftDown:
+                self.text += shiftChars[validChars.index(char)]
+            self.update()
+
+        def update(self):
+            old_rect_pos = self.rect.center
+            self.image = self.font.render(self.text,True, pygame.color.Color('White'))
+            self.rect = self.image.get_rect()
+            self.rect.center = old_rect_pos
+
 class SpaceInvaders(object):
     def __init__(self):
         #global main_menu
@@ -45,7 +71,8 @@ class SpaceInvaders(object):
         self.about_menu = None
         self.main_menu = None
         self.pause_menu = None
- 
+        self.highscore = None
+    
     # -----------------------------------------------------------------------------
     # Constants and global variables
     # -----------------------------------------------------------------------------
@@ -224,7 +251,7 @@ class SpaceInvaders(object):
         RUNNING, PAUSE, EXIT = 0, 1, 2
         state = RUNNING
         # -------- Main Program Loop -----------
-        while player_lives>=1:
+        while len(player_life_sprite_list)>0:
             
 
             # Clock tick 60 fps
@@ -322,14 +349,17 @@ class SpaceInvaders(object):
                 self.screen.blit(point_counter_score, (100, 100))
 
 
-                if pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list) is not None or pygame.sprite.spritecollideany(player_ship, aliens) is not None:
-                    font = pygame.font.Font(None, 36)
-                    text = font.render("GOT HIT MATE", 1, (255, 255, 255))
-                    self.screen.blit(text, (500,500))
-                    print(len(player_life_sprite_list))
-                    ############## wird komsicher weise öfter aufgerufen#############
-                    all_sprites_list.remove(player_life_sprite_list[-1])
-                    player_life_sprite_list = player_life_sprite_list[:-1]
+                if (pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list) is not None or pygame.sprite.spritecollideany(player_ship, aliens) is not None) and player_ship.got_hit == False:
+                    #font = pygame.font.Font(None, 36)
+                    #text = font.render("GOT HIT MATE", 1, (255, 255, 255))
+                    #self.screen.blit(text, (500,500))
+                    player_ship.get_hit()
+                    if len(player_life_sprite_list)>=1:
+                        all_sprites_list.remove(player_life_sprite_list[-1])
+                        player_life_sprite_list = player_life_sprite_list[:-1]
+                    else:
+                        self.screen.blit(pygame.font.SysFont('Consolas', 64).render("Game Over", True, pygame.color.Color('White')), (SCREEN_WIDTH/2,SCREEN_HEIGHT/2))
+                        
             elif state == PAUSE:
                 self.screen.blit(pause_text, (100, 100))
                 self.pause_menu.mainloop(events, disable_loop=test) 
@@ -342,7 +372,64 @@ class SpaceInvaders(object):
             # If test returns
             if test:
                 break  
+        player = self.player_name_entering(difficulty,point_counter)
+        self.highscore= [player,difficulty,point_counter]
+        print (self.highscore)
+        
 
+ 
+
+    def player_name_entering(self,difficulty,point_counter):
+        CENTERSCREENPOS1 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2-160)
+        CENTERSCREENPOS2 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2-80)
+        CENTERSCREENPOS3 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2+0)
+        CENTERSCREENPOS4 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2+40)
+        CENTERSCREENPOS5 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2+80)
+        textBox = TextBox()
+        textBox.rect.center = CENTERSCREENPOS5
+        font = pygame.font.SysFont('Consolas', 64)
+        text_over = font.render("Game Over", True, pygame.color.Color('White'))
+        text_mode = font.render("Mode: "+difficulty, True, pygame.color.Color('White'))
+        text_score = font.render("Score: "+str(point_counter), True, pygame.color.Color('White'))
+        text_separator = font.render("--------------------------", True, pygame.color.Color('White'))
+        text_rect1 = text_over.get_rect()
+        text_rect2 = text_mode.get_rect()
+        text_rect3 = text_score.get_rect()
+        text_rect4 = text_separator.get_rect()
+        text_rect1.center = CENTERSCREENPOS1
+        text_rect2.center = CENTERSCREENPOS2
+        text_rect3.center = CENTERSCREENPOS3
+        text_rect4.center = CENTERSCREENPOS4
+        running = True
+        while running:
+            self.screen.blit(self.background, (0, 0))
+            self.screen.blit(text_over, text_rect1)
+            self.screen.blit(text_mode, text_rect2)
+            self.screen.blit(text_score, text_rect3)
+            self.screen.blit(text_separator, text_rect4)
+            self.screen.blit(textBox.image, textBox.rect)
+            pygame.display.flip()
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    running = False
+                if e.type == pygame.KEYUP:
+                    if e.key in [pygame.K_RSHIFT, pygame.K_LSHIFT]:
+                        shiftDown = False
+                if e.type == pygame.KEYDOWN:
+                    textBox.add_chr(pygame.key.name(e.key))
+                    if e.key == pygame.K_SPACE:
+                        textBox.text += " "
+                        textBox.update()
+                    if e.key in [pygame.K_RSHIFT, pygame.K_LSHIFT]:
+                        shiftDown = True
+                    if e.key == pygame.K_BACKSPACE:
+                        textBox.text = textBox.text[:-1]
+                        textBox.update()
+                    if e.key == pygame.K_RETURN:
+                        if len(textBox.text) > 0:
+                            print (textBox.text)
+                            return textBox.text
+                            running = False
 
     def main_background(self):
         """
@@ -351,15 +438,57 @@ class SpaceInvaders(object):
         """
         self.screen.blit(self.background, (0, 0))
 
+    def save_player_score(self,value):
+        """
+        This function saves the player score.
+        :param value: The widget value
+        :type value: basestring
+        :return: None
+        """
+        print('User name: {0}'.format(value))
+        print('mode: {0}'.format(self.highscore[0]))
+        print('score: {0}'.format(self.highscore[1]))
+    
 
-    def main(self,test=False):
+    def create_game_over_menu(self):
+        self.game_over_menu = pygameMenu.TextMenu(self.screen,
+                                    bgfun=self.main_background,
+                                    color_selected=COLOR_WHITE,
+                                    font=pygameMenu.font.FONT_BEBAS,
+                                    font_color=COLOR_BLACK,
+                                    font_size=30,
+                                    menu_alpha=100,
+                                    menu_color=MENU_BACKGROUND_COLOR,
+                                    menu_height=int(WINDOW_SIZE[1] * 0.6),
+                                    menu_width=int(WINDOW_SIZE[0] * 0.6),
+                                    onclose=pygameMenu.events.DISABLE_CLOSE,
+                                    option_shadow=False,
+                                    title='Game Over',
+                                    window_height=WINDOW_SIZE[1],
+                                    window_width=WINDOW_SIZE[0]
+                                    )
+        if self.highscore is not None:                            
+            self.game_over_menu.add_line('Gamemode: '+str(self.highscore[0]))
+            self.game_over_menu.add_line('Score: '+str(self.highscore[1]))                           
+        self.game_over_menu.add_text_input('Name: ',
+                                        default='Spacer',
+                                        onreturn=self.save_player_score,
+                                        textinput_id='player_name')
+        self.game_over_menu.add_line('----------------------------------------------')  
+        self.game_over_menu.add_option('Save Highscore', self.save_player_score,self.game_over_menu.get_input_data())  # Call function
+        self.game_over_menu.add_option('Menu', self.main_menu)
+        self.game_over_menu.add_option('Quit', pygameMenu.events.EXIT)
+
+
+
+    def main(self,test=False,*score):
         """
         Main program.
         :param test: Indicate function is being tested
         :type test: bool
         :return: None
         """
-
+ 
         # -------------------------------------------------------------------------
         # Globals
         # -------------------------------------------------------------------------
@@ -414,7 +543,6 @@ class SpaceInvaders(object):
                                 ('3 - Hard', 'HARD')],
                             onchange=self.change_difficulty,
                             selector_id='select_difficulty')
-        self.play_menu.add_option('Another menu', self.play_submenu)
         self.play_menu.add_option('Return to main menu', pygameMenu.events.BACK)
 
         # About menu
@@ -443,6 +571,35 @@ class SpaceInvaders(object):
         self.about_menu.add_line(pygameMenu.locals.TEXT_NEWLINE)
         self.about_menu.add_option('Return to menu', pygameMenu.events.BACK)
 
+
+
+
+
+
+        self.highscore_menu = pygameMenu.TextMenu(self.screen,
+                            bgfun=self.main_background,
+                            color_selected=COLOR_WHITE,
+                            font=pygameMenu.font.FONT_BEBAS,
+                            font_color=COLOR_BLACK,
+                            font_size=30,
+                            menu_alpha=100,
+                            menu_color=MENU_BACKGROUND_COLOR,
+                            menu_height=int(WINDOW_SIZE[1] * 0.6),
+                            menu_width=int(WINDOW_SIZE[0] * 0.6),
+                            onclose=pygameMenu.events.DISABLE_CLOSE,
+                            option_shadow=False,
+                            title='Highscore',
+                            window_height=WINDOW_SIZE[1],
+                            window_width=WINDOW_SIZE[0]
+                            )
+
+        HIGHSCORE_LIST = ['1: Tassilo: 500','2: Tassilo: 400','3: Tassilo: 300']
+        for line in HIGHSCORE_LIST:
+            self.highscore_menu.add_line(line) 
+        self.highscore_menu.add_option('Return to Menu', pygameMenu.events.BACK)
+
+
+
         # Main menu
         
         self.main_menu = pygameMenu.Menu(self.screen,
@@ -464,8 +621,39 @@ class SpaceInvaders(object):
 
         self.main_menu.add_option('Play', self.play_menu)
         self.main_menu.add_option('About', self.about_menu)
+        self.main_menu.add_option('Highscore', self.highscore_menu)
         self.main_menu.add_option('Quit', pygameMenu.events.EXIT)
 
+        self.game_over_menu = pygameMenu.TextMenu(self.screen,
+                                    bgfun=self.main_background,
+                                    color_selected=COLOR_WHITE,
+                                    font=pygameMenu.font.FONT_BEBAS,
+                                    font_color=COLOR_BLACK,
+                                    font_size=30,
+                                    menu_alpha=100,
+                                    menu_color=MENU_BACKGROUND_COLOR,
+                                    menu_height=int(WINDOW_SIZE[1] * 0.6),
+                                    menu_width=int(WINDOW_SIZE[0] * 0.6),
+                                    onclose=pygameMenu.events.DISABLE_CLOSE,
+                                    option_shadow=False,
+                                    title='Game Over',
+                                    window_height=WINDOW_SIZE[1],
+                                    window_width=WINDOW_SIZE[0]
+                                    )
+        if self.highscore is not None:                            
+            self.game_over_menu.add_line('Gamemode: '+str(self.highscore[0]))
+            self.game_over_menu.add_line('Score: '+str(self.highscore[1]))                           
+        self.game_over_menu.add_text_input('Name: ',
+                                        default='Spacer',
+                                        onreturn=self.save_player_score,
+                                        textinput_id='player_name')
+        self.game_over_menu.add_line('----------------------------------------------')  
+        self.game_over_menu.add_option('Save Highscore', self.save_player_score,self.game_over_menu.get_input_data())  # Call function
+        self.game_over_menu.add_option('Menu', self.main_menu)
+        self.game_over_menu.add_option('Quit', pygameMenu.events.EXIT)
+
+        
+        
 
         # Configure main menu
         self.main_menu.set_fps(FPS)
@@ -488,7 +676,19 @@ class SpaceInvaders(object):
                     exit()
 
             # Main menu
-            self.main_menu.mainloop(events, disable_loop=test)
+            #if (self.highscore is not None):
+            #    self.main_menu.enable()
+            #self.main_menu.mainloop(events)
+            self.main_menu.mainloop(events)
+
+            if (not self.main_menu.is_enabled()):
+                self.main_menu.enable()
+                       
+            #, disable_loop=test)
+           # else:
+            #    self.main_menu.reset(1)
+            #    self.main_menu.mainloop(events,disable_loop=test)
+                
 
             # Flip screen
             pygame.display.flip()
