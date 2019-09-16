@@ -4,6 +4,7 @@ import sys
 import os
 import pygame
 import pygameMenu
+import json
 from ship import Ship
 from alien import Alien
 from bullet import Bullet
@@ -27,6 +28,10 @@ DIFFICULTY = ['EASY']
 FPS = 60.0
 MENU_BACKGROUND_COLOR = (228, 55, 36)
 WINDOW_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+SCOREFILENAME = "gamescores.json"
+FILEMODE = "r+"
+FILETEXT = "Player: {}; Mode: {}; Score: {}\n"
+
 
 
 
@@ -375,6 +380,7 @@ class SpaceInvaders(object):
         player = self.player_name_entering(difficulty,point_counter)
         self.highscore= [player,difficulty,point_counter]
         print (self.highscore)
+        self.save_player_score(player,difficulty,point_counter)
         
 
  
@@ -437,17 +443,35 @@ class SpaceInvaders(object):
         :return: None
         """
         self.screen.blit(self.background, (0, 0))
+    def read_highscore(self):
+        with open(SCOREFILENAME, "r") as jsonFile:
+                data = json.load(jsonFile)
+        highscore_list = []
+        for d in data:
+            highscore_list.append('{:^13} {:^13} {:^13}'.format("Mode: "+d,"Player: "+ data[d][0]['player'],"Score: "+ str(data[d][0]['score'])))
+        return highscore_list
 
-    def save_player_score(self,value):
+    def save_player_score(self,player,difficulty,point_counter):
         """
         This function saves the player score.
         :param value: The widget value
         :type value: basestring
         :return: None
         """
-        print('User name: {0}'.format(value))
-        print('mode: {0}'.format(self.highscore[0]))
-        print('score: {0}'.format(self.highscore[1]))
+        try:
+            with open(SCOREFILENAME, "r") as jsonFile:
+                data = json.load(jsonFile)
+            if difficulty not in data:
+                data[difficulty] = ([{'player':player,'score':point_counter}])
+                with open(SCOREFILENAME, "w") as jsonFile:
+                    json.dump(data, jsonFile)
+            elif data[difficulty][0]['score'] < point_counter:
+                data[difficulty][0]['score'] = point_counter
+                data[difficulty][0]['player'] = player
+                with open(SCOREFILENAME, "w") as jsonFile:
+                    json.dump(data, jsonFile)
+        except Exception as e:
+            print("exceptiontext: "+str(e))
     
 
     def create_game_over_menu(self):
@@ -593,7 +617,7 @@ class SpaceInvaders(object):
                             window_width=WINDOW_SIZE[0]
                             )
 
-        HIGHSCORE_LIST = ['1: Tassilo: 500','2: Tassilo: 400','3: Tassilo: 300']
+        HIGHSCORE_LIST = self.read_highscore()
         for line in HIGHSCORE_LIST:
             self.highscore_menu.add_line(line) 
         self.highscore_menu.add_option('Return to Menu', pygameMenu.events.BACK)
