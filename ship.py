@@ -40,7 +40,7 @@ class Ship(pygame.sprite.Sprite):
 
     def get_hit(self):
         self.got_hit = True
-    
+            
     def get_hight(self):
         return self.hight
 

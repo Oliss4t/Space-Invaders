@@ -82,6 +82,7 @@ class AlienGroup(pygame.sprite.Group):
             if(random.random() < (self.alien_dead_count/self.alien_count)*self.shoot_factor):
                 random_bottom_alien = random.randrange(len(self.bottom_alive_aliens))
                 bullet = Bullet(self.bottom_alive_aliens[random_bottom_alien].rect.x +29 , self.bottom_alive_aliens[random_bottom_alien].rect.y +27, +10)
+                pygame.mixer.Sound('sounds/shoot_alien.wav').play()
                 return bullet
 
     def update_speed(self):
@@ -92,6 +93,7 @@ class AlienGroup(pygame.sprite.Group):
                 self.speed -=1
 
     def kill(self, alien):
+        pygame.mixer.Sound('sounds/invaderkilled.wav').play()
         self.alive_aliens[alien.row][alien.column] = None
         self.update_bottom_aliens(self.rows,self.columns)
         self.alien_dead_count +=1
