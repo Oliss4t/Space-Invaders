@@ -13,6 +13,8 @@ from asteroid import Asteroid
 from player_life import Player_Life
 from textbox import TextBox
 from asteroid_method import create_asteroid_ellipse
+from PodSixNet.Connection import ConnectionListener, connection
+from time import sleep
 
 ABOUT = ['Author: @{0}'.format('Tassilo Henninger'),'Email: {0}'.format('tassilo.henninger@gmail.com'),pygameMenu.locals.TEXT_NEWLINE,'Controls:',"Move: left and right arrow key or 'a' and 'd'",'Shoot: SPACEBAR', 'Pause: ESC key']
 COLOR_BLACK = ( 0, 0, 0)
@@ -34,8 +36,20 @@ FILETEXT = "Player: {}; Mode: {}; Score: {}\n"
 
 
 
-class SpaceInvaders(object):
-    def __init__(self):
+mall_sprites_list = None
+mall_bullets_list = None
+mall_alien_bullets_list = None
+mall_asteroids_list = None
+mplayer_life_sprite_list = None
+maliens = None
+mpoint_counter = None
+
+
+
+class SpaceInvaders(ConnectionListener):
+    def __init__(self, host, port):
+        self.Connect((host, port))
+        self.players = {}
         #global main_menu
         pygame.init()
         os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -55,6 +69,20 @@ class SpaceInvaders(object):
         self.music_menu = None
         self.music_game = None
         self.music_game_over = None
+
+        self.Connect((host, port))
+        self.players = {}
+        self.statusLabel = "connecting"
+        self.playersLabel = "0 players"
+        self.frame = 0
+        self.down = False
+        self.host ="localhost"
+        self.port = 8000
+        self.gameid = None
+        self.num = None
+        self.justmoved=10
+
+
     
        
     # -----------------------------------------------------------------------------
@@ -337,7 +365,114 @@ class SpaceInvaders(object):
         self.create_main_menu()
         self.main_menu.enable()
         self.main_menu.mainloop(events)
+
+#############################################################################################################################################################################
+# multiplayer methods
+#############################################################################################################################################################################
+
+    def Network_startgame(self, data):
+        self.running=True
+        self.num=data["player"]
+        self.gameid=data["gameid"]
+
+    def Network_move(self, data):
+        #get attributes
+        x = data["x"]
+        y = data["y"]
+
+
+    def Network_update(self, data):
+        #get attributes
+        print(data["all_sprites_list"])
+        mall_sprites_list = eval(data["all_sprites_list"])
+        mall_bullets_list = eval(data["all_bullets_list"])
+        mall_alien_bullets_list = eval(data["all_alien_bullets_list"])
+        mall_asteroids_list = eval(data["all_asteroids_list"])
+        mplayer_life_sprite_list = eval(data["player0_life_sprite_list"])
+        maliens = eval(data["aliens"])
+        mpoint_counter = data["point_counter"]
+   
+    def play_multiplayer_function(self, font, test=False):
+        print("enter now multiplayer")
+        self.music_menu.stop()
+        self.music_game=pygame.mixer.Sound('sounds/gamemusic.wav').play(-1)
+
+        point_counter = 0
+        player_lvl =1
+        asteroid_init_params = {}
+        alien_init_params = {}
+        player_lives = None
+
+        self.main_menu.disable()
+
+        self.marker=1
+        self.othermarker = 2
+
+        player_life_sprite_list=[1,1]
+
+        # -------- Main Program Loop -----------
+        while len(player_life_sprite_list)>0:
+            self.Pump()
+            connection.Pump()
+            self.clock.tick(60)
+
+            if "connecting" in self.statusLabel:
+                self.statusLabel = "connecting" + "".join(["." for s in range(int(self.frame / 30) % 4)])
+                sleep(0.001)
       
+            # --- Main event loop
+            events = pygame.event.get()
+            for event in events: # User did something
+                if event.type == pygame.QUIT: # If user clicked close
+                    exit()
+                       
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                print("Rightmove")
+                self.Send({"action": "move", "gameid": self.gameid, "num": self.num})
+                #player_ship.move_left(SCREEN_WIDTH/100,SCREEN_WIDTH)
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                print("Leftmove")
+                self.Send({"action": "move", "gameid": self.gameid, "num": self.num})
+                #player_ship.move_right(SCREEN_WIDTH/100,SCREEN_WIDTH)
+            if keys[pygame.K_SPACE]:
+                if not mall_bullets_list:
+                    print("shoot")
+                    self.Send({"action": "shoot", "gameid": self.gameid, "num": self.num})
+                    pygame.mixer.Sound('sounds/shoot.wav').play()
+
+
+
+            
+            self.screen.blit(self.background, (0, 0))
+            if maliens is not None:
+                # drawing all sprites
+                
+                maliens.draw(self.screen)
+                mall_sprites_list.draw(self.screen)
+                point_counter_score = pygame.font.SysFont('Consolas', 32).render(str(mpoint_counter), True, pygame.color.Color('White'))
+                self.screen.blit(point_counter_score, (100, SCREEN_HEIGHT *0.05))
+                pygame.display.flip()
+
+
+        self.music_game.stop()
+        pygame.mixer.Sound('sounds/GameOver.wav').play()
+        self.music_game_over = pygame.mixer.Sound('sounds/GameOver2.wav').play(-1)
+        player = self.player_name_entering(difficulty,point_counter)
+        self.highscore= [player,difficulty,point_counter]
+        print (self.highscore)
+        self.save_player_score(player,difficulty,point_counter)
+        self.pause_menu.reset(1)
+        self.pause_menu.disable()
+        #self.create_all_menus()
+        self.music_game_over.stop()
+        self.music_menu = pygame.mixer.Sound('sounds/backgroundmusic.wav').play(-1)
+        self.create_highscore_menu()
+        self.create_main_menu()
+        self.main_menu.enable()
+        self.main_menu.mainloop(events)
+
+
           
     def player_name_entering(self,difficulty,point_counter):
         CENTERSCREENPOS1 = (SCREEN_WIDTH/2,SCREEN_HEIGHT/2-160)
@@ -556,6 +691,9 @@ class SpaceInvaders(object):
                             self.play_function,
                             DIFFICULTY,
                             pygame.font.Font(pygameMenu.font.FONT_FRANCHISE, 30))
+        self.play_menu.add_option('Start multi',  # When pressing return -> play(DIFFICULTY[0], font)
+                            self.play_multiplayer_function,
+                            pygame.font.Font(pygameMenu.font.FONT_FRANCHISE, 30))
         self.play_menu.add_selector('Select difficulty',
                             [('1 - Easy', 'EASY'),
                                 ('2 - Medium', 'MEDIUM'),
@@ -608,6 +746,8 @@ class SpaceInvaders(object):
 
         # Main loop
         while True:
+            #connection.Pump()
+            #self.Pump()
            # if not self.music_menu:  
            #     print("not music")           
            #     self.music_menu = pygame.mixer.Sound('sounds/backgroundmusic.wav').play(-1)
@@ -635,6 +775,13 @@ class SpaceInvaders(object):
             if test:
                 break
 
+   
 #if __name__ == '__main__':
-game = SpaceInvaders()
-game.main()
+# = SpaceInvaders()
+#game.main()
+host, port = sys.argv[1].split(":")
+c = SpaceInvaders(host, int(port))
+c.main()
+#while 1:
+#    c.Loop()
+#    sleep(0.001)
