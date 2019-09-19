@@ -635,6 +635,6 @@ class SpaceInvaders(object):
             if test:
                 break
 
-if __name__ == '__main__':
-    game = SpaceInvaders()
-    game.main()
+#if __name__ == '__main__':
+game = SpaceInvaders()
+game.main()
