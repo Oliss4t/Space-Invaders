@@ -1,6 +1,9 @@
 import pygame
 
 class Player_Life(pygame.sprite.Sprite):    
+    """
+    This class represents an Playerlife. It derives from the "Sprite" class in Pygame
+    """
     def __init__(self,screen_x,screen_y):
         super().__init__()
         self.image = pygame.image.load("images\\life.png").convert_alpha()

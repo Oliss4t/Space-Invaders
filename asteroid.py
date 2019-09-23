@@ -1,6 +1,10 @@
 import pygame
 
 class Asteroid(pygame.sprite.Sprite):
+    """
+    This class represents an asteroid pice. It derives from the "Sprite" class in Pygame
+    """
+    
     def __init__(self,size,x,y,color):
         super().__init__()
         self.size = size
