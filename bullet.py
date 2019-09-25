@@ -17,5 +17,5 @@ class Bullet(pygame.sprite.Sprite):
         :return: None
         """
         self.rect.y += self.speed
-        if self.rect.y < 15 or self.rect.y > 1200:
+        if self.rect.y < 15 or self.rect.y > 900:
             self.kill()

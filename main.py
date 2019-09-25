@@ -6,8 +6,10 @@ import os
 import pygame
 import pygameMenu
 import json
+import random
 from ship import Ship
 from alien import Alien
+from bonus import Bonus
 from bullet import Bullet
 from aliengroup import AlienGroup
 from asteroid import Asteroid
@@ -21,7 +23,7 @@ COLOR_WHITE = ( 255, 255, 255)
 COLOR_GREY = (140,140,140)
 SCREEN_WIDTH=1200
 SCREEN_HEIGHT=900
-ALIEN_DEFAULT_POSITION= 50
+ALIEN_DEFAULT_POSITION= 90
 ALIEN_DEFAULT_HIGHT= 87
 ALIEN_DEFAULT_WIDTH=64
 COLOR_BACKGROUND = (128, 0, 128)
@@ -56,6 +58,8 @@ class SpaceInvaders(object):
         self.highscore = None
         self.music_menu = None
         self.music_game = None
+        self.music_bonus = pygame.mixer.Sound('sounds/mysteryentered.wav')
+        self.music_bonus.set_volume(0.2)
         self.music_game_over = None
     
        
@@ -159,7 +163,7 @@ class SpaceInvaders(object):
         :return type: list
         """
         life_draw_width =SCREEN_WIDTH *0.95
-        life_draw_hight =SCREEN_HEIGHT *0.05
+        life_draw_hight =SCREEN_HEIGHT *0.02
         player_lifes = []
         for life in range(count):
             player_life = Player_Life(life_draw_width - 50 *life ,life_draw_hight)
@@ -206,6 +210,7 @@ class SpaceInvaders(object):
         asteroid_init_params = {}
         alien_init_params = {}
         player_lives = None
+        bonus = None
 
         if difficulty == 'EASY':
             asteroid_init_params = {"size":10,"count":4,"width":100,"heigt":60,"color":COLOR_GREY}
@@ -275,6 +280,7 @@ class SpaceInvaders(object):
                 all_sprites_list.add(player_ship) 
 
             # --- Main event loop
+            
             events = pygame.event.get()
             for event in events: 
                 if event.type == pygame.QUIT:
@@ -282,6 +288,7 @@ class SpaceInvaders(object):
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE and self.main_menu.is_disabled() and self.pause_menu.is_disabled():
                         self.pause_menu.enable()
+                        
                                   
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -320,15 +327,37 @@ class SpaceInvaders(object):
             if alien_bullet is not None:
                 all_sprites_list.add(alien_bullet)
                 all_alien_bullets_list.add(alien_bullet)
+
             all_sprites_list.update()
             aliens.update()
             
+
+                       
             # detect bullet sprites that collide with alien sprites, if so the sprites get killed from their group and points are added to the score
             collided_bullets_aliens = pygame.sprite.groupcollide(all_bullets_list, aliens, True, True, False)
             if collided_bullets_aliens.values():
                 for killed_aliens in collided_bullets_aliens.values():
                     for killed_alien in killed_aliens:
                         point_counter+=killed_alien.points
+
+            
+            # creates bonus ship. random with the propability 2 % and takes track of it
+            if random.random() < 0.0005 and (bonus is None or not bonus.alive()):
+                self.music_bonus.play(-1)
+                bonus = Bonus(-30,45,2)
+                all_sprites_list.add(bonus)
+            if bonus is not None and bonus.rect.x > 1200:
+                self.music_bonus.stop()
+            if bonus is not None:
+                collided_bonus = pygame.sprite.spritecollideany(bonus, all_bullets_list)
+                if collided_bonus is not None:
+                    point_counter+=bonus.points
+                    bonus.got_hit()
+                    bonus = None
+                    self.music_bonus.stop()
+                    
+                    
+            
 
             # detect if alien bullet/ player bullet/ or alien sprites collide with asteroid sprites, if so both collided sprites get killed from their group.
             asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, all_bullets_list, True, True)
@@ -345,7 +374,7 @@ class SpaceInvaders(object):
                    
             # check if aliens are on bottom of screen. if so --> game over       
             for alien in aliens:
-                if alien.rect.y >= SCREEN_HEIGHT:
+                if alien.rect.y >= SCREEN_HEIGHT-40:
                     player_life_sprite_list.clear()
                     
             # check if aliens collide with the player ship. if so --> game over      
@@ -360,15 +389,16 @@ class SpaceInvaders(object):
             all_sprites_list.draw(self.screen)
             # draw game score
             point_counter_score = pygame.font.SysFont('Consolas', 32).render(str(point_counter), True, pygame.color.Color('White'))
-            self.screen.blit(point_counter_score, (100, SCREEN_HEIGHT *0.05))
+            self.screen.blit(point_counter_score, (100, SCREEN_HEIGHT *0.02))
             # draw round counter
             round_counter_score = pygame.font.SysFont('Consolas', 32).render(str(round_counter), True, pygame.color.Color('White'))
-            self.screen.blit(round_counter_score, (SCREEN_WIDTH/2, SCREEN_HEIGHT *0.05))
+            self.screen.blit(round_counter_score, (SCREEN_WIDTH/2, SCREEN_HEIGHT *0.02))
 
             # refresh screen.
             pygame.display.flip()
 
         #game over
+        self.music_bonus.stop()
         self.music_game.stop()
         pygame.mixer.Sound('sounds/GameOver.wav').play()
         self.music_game_over = pygame.mixer.Sound('sounds/GameOver2.wav').play(-1)
@@ -499,6 +529,7 @@ class SpaceInvaders(object):
         :return: None
         """
         self.music_game.stop()
+        self.music_bonus.stop()
         self.main()
 
     def reset_game(self):
@@ -507,6 +538,7 @@ class SpaceInvaders(object):
         :return: None
         """
         self.music_game.stop()
+        self.music_bonus.stop()
         self.play_function(DIFFICULTY)
 
     def create_pause_menu(self):
