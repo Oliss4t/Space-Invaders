@@ -8,6 +8,8 @@ game is played on 1200/900 resolution
 left gamescore/middle alien wave / right lifes
 with screenshot
 
+bonus ship gives extra 100 points, but hard to hit
+
 Code is commented via docstring, so you can get info of an method or class via help(name)
 
 
