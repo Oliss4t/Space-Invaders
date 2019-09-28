@@ -1,6 +1,10 @@
 import os,json, hashlib
 from Crypto.Cipher import AES
 
+"""
+This modul contains the methods to read and write to the aes encrypted highscore file.
+"""
+
 def encrypt_file_CFB(key, in_filename, out_filename=None):
     """
     Encrypts a file using AES (CFB mode) with the given key.
@@ -129,12 +133,3 @@ def save_player_score(player,difficulty,point_counter,key,in_filename):
             file_out.close()
     except:
         print("Saving error")
-
-
-#PASSWORD = 'SuperSavePasswordThatAirbusWillNeverFindOut'.encode()
-#key = hashlib.sha256(PASSWORD).digest()
-#encrypt_file_CFB(key,'gamescores.json')
-#print(decrypt_file_CFB(key,'gamescores.json.enc'))
-#print(read_highscore(key,'gamescorestest.json.enc'))
-#save_player_score('script','MEDIUM',1500,'gamescorestest.json.enc')
-#print(read_highscore(key,'gamescorestest.json.enc'))
