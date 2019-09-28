@@ -16,6 +16,15 @@ class Alien(pygame.sprite.Sprite):
         if alien_type ==3:
             self.image = pygame.transform.scale(pygame.image.load("images\\alien3.png").convert_alpha(),(64,87))
             self.points = 30
+        # for multiplayer 
+        if alien_type ==4:
+            self.image = pygame.transform.scale(pygame.image.load("images\\alien2.png").convert_alpha(),(64,87))
+            self.points = 20
+        if alien_type ==5:
+            self.image = pygame.transform.scale(pygame.image.load("images\\alien3.png").convert_alpha(),(64,87))
+            self.points = 20
+
+        self.type = alien_type    
         self.width= self.image.get_size()[0]
         self.hight= self.image.get_size()[1]
         self.row = row

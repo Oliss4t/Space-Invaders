@@ -5,14 +5,23 @@ class Ship(pygame.sprite.Sprite):
     This class represents an Ship. It derives from the "Sprite" class in Pygame
     """
     
-    def __init__(self,level):
+    def __init__(self,level,player):
         super().__init__()
-        if level ==1:
+
+        if level ==1 and player == 1:
             self.images = [pygame.transform.scale(pygame.image.load("images\\shiplvl1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl1_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl1_explosion2.png").convert_alpha(), (111, 93))]
-        if level ==2:
+        if level ==2 and player == 1:
             self.images = [pygame.transform.scale(pygame.image.load("images\\shiplvl2.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl2_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl2_explosion2.png").convert_alpha(), (111, 93))]
-        if level ==3:
+        if level ==3 and player == 1:
             self.images = [pygame.transform.scale(pygame.image.load("images\\shiplvl3.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl3_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\shiplvl3_explosion2.png").convert_alpha(), (111, 93))]
+        if level ==1 and player == 2:
+            self.images = [pygame.transform.scale(pygame.image.load("images\\ship2lvl1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl1_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl1_explosion2.png").convert_alpha(), (111, 93))]
+        if level ==2 and player == 2:
+            self.images = [pygame.transform.scale(pygame.image.load("images\\ship2lvl2.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl2_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl2_explosion2.png").convert_alpha(), (111, 93))]
+        if level ==3 and player == 2:
+            self.images = [pygame.transform.scale(pygame.image.load("images\\ship2lvl3.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl3_explosion1.png").convert_alpha(), (111, 93)),pygame.transform.scale(pygame.image.load("images\\ship2lvl3_explosion2.png").convert_alpha(), (111, 93))]
+       
+       
         # level_id for the ship-"evolvement" 
         self.image = self.images[0]
         self.level = level

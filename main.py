@@ -17,7 +17,7 @@ from player_life import Player_Life
 from textbox import TextBox
 from asteroid_method import create_asteroid_ellipse
 
-ABOUT = ['Author: @{0}'.format('Tassilo Henninger'),'Email: {0}'.format('tassilo.henninger@gmail.com'),pygameMenu.locals.TEXT_NEWLINE,'Controls:',"Move: left and right arrow key or 'a' and 'd'",'Shoot: SPACEBAR', 'Pause: ESC key']
+ABOUT = ['Author: @{0}'.format('Tassilo Henninger'),'Email: {0}'.format('tassilo.henninger@gmail.com'),pygameMenu.locals.TEXT_NEWLINE,'Controls:',"Move: left and right arrow key or 'a' and 'd'","Shoot: SPACEBAR or RETURN + 'L-' and 'R-' Shift in multiplayer", 'Pause: ESC key'] 
 COLOR_BLACK = ( 0, 0, 0)
 COLOR_WHITE = ( 255, 255, 255)
 COLOR_GREY = (140,140,140)
@@ -105,6 +105,27 @@ class SpaceInvaders(object):
                 aliens.add(alien)
         aliens.init_bottom_aliens()
         return aliens
+    def make_aliens_multiplayer(self,columns,rows):
+        """
+        This function creates aliens for the current game round multiplayer.
+        :param columns: integer representing the amount of alien columns to create
+        :type columns: integer
+        :param rows: integer representing the amount of alien rows to create
+        :type rows: integer
+        :return param: sprite group containing all created alien sprites
+        :return type: sprite group 
+        """
+        alien_type =1
+        devided_space =(SCREEN_WIDTH-2*ALIEN_DEFAULT_POSITION)/columns
+        aliens = AlienGroup(columns, rows, devided_space, SCREEN_WIDTH)
+        for row in range(rows):
+            for column in range(columns):
+                alien = Alien(SCREEN_WIDTH,SCREEN_HEIGHT,row, column,random.randint(4,5))
+                alien.rect.x = ALIEN_DEFAULT_POSITION + ((column) * devided_space)
+                alien.rect.y = ALIEN_DEFAULT_POSITION + ((row) * ALIEN_DEFAULT_HIGHT )
+                aliens.add(alien)
+        aliens.init_bottom_aliens()
+        return aliens
 
     def make_asteroid(self, size_of_asteroid_pice,width_of_asteroid,heigt_of_asteroid,number_of_asteroids,color):
         """
@@ -133,7 +154,7 @@ class SpaceInvaders(object):
                                                         , SCREEN_HEIGHT*0.7+heigt_of_asteroid,color,fill = True))
         return asteroid_group
         
-    def load_player(self,current_x, current_y,lvl):
+    def load_player(self,current_x, current_y,lvl,player):
         """
         This function creates the player sprite with a given level.
         :param current_x: integer representing the current x position of the current player ship sprite
@@ -145,7 +166,7 @@ class SpaceInvaders(object):
         :return param: sprite playership
         :return type: sprite
         """
-        player_ship = Ship(lvl)
+        player_ship = Ship(lvl,player)
         if lvl ==1:
             player_ship.rect.x = SCREEN_WIDTH/2 -player_ship.get_width()/2
             player_ship.rect.y = SCREEN_HEIGHT - player_ship.get_hight()
@@ -203,7 +224,7 @@ class SpaceInvaders(object):
         self.music_game=pygame.mixer.Sound('sounds/gamemusic.wav').play(-1)
         point_counter = 0
         round_counter = 1
-        player_lvl =1
+        player_lvl = 1
         assert isinstance(difficulty, (tuple, list))
         difficulty = difficulty[0]
         assert isinstance(difficulty, str)
@@ -211,6 +232,7 @@ class SpaceInvaders(object):
         alien_init_params = {}
         player_lives = None
         bonus = None
+        multiplayer = False
 
         if difficulty == 'EASY':
             asteroid_init_params = {"size":10,"count":4,"width":100,"heigt":60,"color":COLOR_GREY}
@@ -230,6 +252,13 @@ class SpaceInvaders(object):
             player_lives = 1
             lvl2_points=175
             lvl3_points=600
+        elif difficulty == 'MULTI':
+            asteroid_init_params = {"size":10,"count":3,"width":100,"heigt":60,"color":COLOR_GREY}
+            alien_init_params = {"columns":6,"rows":4,"alien_type_list":[3,2,1,1]}
+            player_lives = 5
+            lvl2_points=150
+            lvl3_points=500
+            multiplayer = True
         else:
             raise Exception('Unknown difficulty {0}'.format(difficulty))
         
@@ -242,12 +271,19 @@ class SpaceInvaders(object):
         all_sprites_list.add(all_asteroids_list)
         all_sprites_list.add(player_life_sprite_list)
 
-        player_ship =self.load_player(0,0,1)
-        all_sprites_list.add(player_ship) 
+        player_ship1 =self.load_player(0,0,1,1)
+        all_sprites_list.add(player_ship1) 
 
+        if multiplayer:
+            player_ship2 =self.load_player(0,0,1,2)
+            all_sprites_list.add(player_ship2) 
+            all_bullets_player1_list = pygame.sprite.Group()
+            all_bullets_player2_list = pygame.sprite.Group()
         #create aliens
-        aliens=self.make_aliens(alien_init_params["columns"],alien_init_params["rows"],alien_init_params["alien_type_list"])
-
+        if not multiplayer:
+            aliens=self.make_aliens(alien_init_params["columns"],alien_init_params["rows"],alien_init_params["alien_type_list"])
+        else:
+            aliens=self.make_aliens_multiplayer(alien_init_params["columns"],alien_init_params["rows"])
         
 
         # pause menu
@@ -263,21 +299,38 @@ class SpaceInvaders(object):
 
             #create next alienwave if the alien group is empty
             if len(aliens) <=0:
-                alien_init_params=self.update_alien_params(alien_init_params)              
-                aliens = self.make_aliens(alien_init_params["columns"],alien_init_params["rows"],alien_init_params["alien_type_list"])
-                round_counter +=1
-        
+                if not multiplayer:
+                    alien_init_params=self.update_alien_params(alien_init_params)              
+                    aliens = self.make_aliens(alien_init_params["columns"],alien_init_params["rows"],alien_init_params["alien_type_list"])
+                    round_counter +=1
+                else:
+                    alien_init_params=self.update_alien_params(alien_init_params)              
+                    aliens = self.make_aliens_multiplayer(alien_init_params["columns"],alien_init_params["rows"])
+                    round_counter +=1
+                            
             #upgrade playership if points are reached
-            if point_counter > lvl2_points and player_ship.level ==1:
-                new_player_ship=self.load_player(player_ship.rect.x,player_ship.rect.y,2)
-                player_ship.kill()
-                player_ship = new_player_ship
-                all_sprites_list.add(player_ship) 
-            if point_counter > lvl3_points and player_ship.level ==2:
-                new_player_ship=self.load_player(player_ship.rect.x,player_ship.rect.y,3)
-                player_ship.kill()
-                player_ship = new_player_ship
-                all_sprites_list.add(player_ship) 
+            if point_counter > lvl2_points and player_ship1.level ==1:
+                new_player_ship1=self.load_player(player_ship1.rect.x,player_ship1.rect.y,2,1)
+                player_ship1.kill()
+                player_ship1 = new_player_ship1
+                all_sprites_list.add(player_ship1) 
+            if point_counter > lvl3_points and player_ship1.level ==2:
+                new_player_ship1=self.load_player(player_ship1.rect.x,player_ship1.rect.y,3,1)
+                player_ship1.kill()
+                player_ship1 = new_player_ship1
+                all_sprites_list.add(player_ship1) 
+
+            if multiplayer:                #upgrade playership if points are reached
+                if point_counter > lvl2_points and player_ship2.level ==1:
+                    new_player_ship2=self.load_player(player_ship2.rect.x,player_ship2.rect.y,2,2)
+                    player_ship2.kill()
+                    player_ship2 = new_player_ship2
+                    all_sprites_list.add(player_ship2) 
+                if point_counter > lvl3_points and player_ship2.level ==2:
+                    new_player_ship2=self.load_player(player_ship2.rect.x,player_ship2.rect.y,3,2)
+                    player_ship2.kill()
+                    player_ship2 = new_player_ship2
+                    all_sprites_list.add(player_ship2) 
 
             # --- Main event loop
             
@@ -291,32 +344,89 @@ class SpaceInvaders(object):
                         
                                   
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                player_ship.move_left(SCREEN_WIDTH/100,SCREEN_WIDTH)
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                player_ship.move_right(SCREEN_WIDTH/100,SCREEN_WIDTH)
-            if keys[pygame.K_SPACE]:
-                if not all_bullets_list:
-                    if (player_ship.level == 1):#level 1
-                        bullet = Bullet(player_ship.rect.x+52 , player_ship.rect.y+20, -10)
-                        all_bullets_list.add(bullet)
-                        all_sprites_list.add(bullet)
-                        pygame.mixer.Sound('sounds/shoot.wav').play()
-                    if (player_ship.level == 2):#level 2
-                        bullet1 = Bullet(player_ship.rect.x+36 , player_ship.rect.y+5, -10)
-                        bullet2 = Bullet(player_ship.rect.x+67 , player_ship.rect.y+5, -10)
-                        all_bullets_list.add(bullet1,bullet2)
-                        all_sprites_list.add(bullet1,bullet2)
-                        pygame.mixer.Sound('sounds/shoot.wav').play()
-                    if (player_ship.level == 3):#level 3
-                        bullet1 = Bullet(player_ship.rect.x+8 , player_ship.rect.y+30, -10)
-                        bullet2 = Bullet(player_ship.rect.x+25 , player_ship.rect.y+15, -10)
-                        bullet3 = Bullet(player_ship.rect.x+79 , player_ship.rect.y+15, -10)
-                        bullet4 = Bullet(player_ship.rect.x+97 , player_ship.rect.y+30, -10)
-                        all_bullets_list.add(bullet1,bullet2,bullet3,bullet4)
-                        all_sprites_list.add(bullet1,bullet2,bullet3,bullet4)
-                        pygame.mixer.Sound('sounds/shoot.wav').play()
-
+            if not multiplayer:
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    player_ship1.move_left(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    player_ship1.move_right(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_SPACE] or keys[pygame.K_RETURN]:
+                    if not all_bullets_list:
+                        if (player_ship1.level == 1):#level 1
+                            bullet = Bullet(player_ship1.rect.x+52 , player_ship1.rect.y+20, -10)
+                            all_bullets_list.add(bullet)
+                            all_sprites_list.add(bullet)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship1.level == 2):#level 2
+                            bullet1 = Bullet(player_ship1.rect.x+36 , player_ship1.rect.y+5, -10)
+                            bullet2 = Bullet(player_ship1.rect.x+67 , player_ship1.rect.y+5, -10)
+                            all_bullets_list.add(bullet1,bullet2)
+                            all_sprites_list.add(bullet1,bullet2)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship1.level == 3):#level 3
+                            bullet1 = Bullet(player_ship1.rect.x+8 , player_ship1.rect.y+30, -10)
+                            bullet2 = Bullet(player_ship1.rect.x+25 , player_ship1.rect.y+15, -10)
+                            bullet3 = Bullet(player_ship1.rect.x+79 , player_ship1.rect.y+15, -10)
+                            bullet4 = Bullet(player_ship1.rect.x+97 , player_ship1.rect.y+30, -10)
+                            all_bullets_list.add(bullet1,bullet2,bullet3,bullet4)
+                            all_sprites_list.add(bullet1,bullet2,bullet3,bullet4)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+            else :
+                if keys[pygame.K_LEFT]:
+                    player_ship1.move_left(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_RIGHT]:
+                    player_ship1.move_right(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_RETURN] or keys[pygame.K_RSHIFT]:
+                    if not all_bullets_player1_list:
+                        if (player_ship1.level == 1):#level 1
+                            bullet = Bullet(player_ship1.rect.x+52 , player_ship1.rect.y+20, -10)
+                            all_bullets_player1_list.add(bullet)
+                            all_bullets_list.add(bullet)
+                            all_sprites_list.add(bullet)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship1.level == 2):#level 2
+                            bullet1 = Bullet(player_ship1.rect.x+36 , player_ship1.rect.y+5, -10)
+                            bullet2 = Bullet(player_ship1.rect.x+67 , player_ship1.rect.y+5, -10)
+                            all_bullets_player1_list.add(bullet1,bullet2)
+                            all_bullets_list.add(bullet1,bullet2)
+                            all_sprites_list.add(bullet1,bullet2)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship1.level == 3):#level 3
+                            bullet1 = Bullet(player_ship1.rect.x+8 , player_ship1.rect.y+30, -10)
+                            bullet2 = Bullet(player_ship1.rect.x+25 , player_ship1.rect.y+15, -10)
+                            bullet3 = Bullet(player_ship1.rect.x+79 , player_ship1.rect.y+15, -10)
+                            bullet4 = Bullet(player_ship1.rect.x+97 , player_ship1.rect.y+30, -10)
+                            all_bullets_player1_list.add(bullet1,bullet2,bullet3,bullet4)
+                            all_bullets_list.add(bullet1,bullet2,bullet3,bullet4)
+                            all_sprites_list.add(bullet1,bullet2,bullet3,bullet4)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                if keys[pygame.K_a]:
+                    player_ship2.move_left(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_d]:
+                    player_ship2.move_right(SCREEN_WIDTH/100,SCREEN_WIDTH)
+                if keys[pygame.K_SPACE] or keys[pygame.K_LSHIFT]:
+                    if not all_bullets_player2_list:
+                        if (player_ship2.level == 1):#level 1
+                            bullet = Bullet(player_ship2.rect.x+52 , player_ship2.rect.y+20, -10)
+                            all_bullets_player2_list.add(bullet)
+                            all_bullets_list.add(bullet)
+                            all_sprites_list.add(bullet)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship2.level == 2):#level 2
+                            bullet1 = Bullet(player_ship2.rect.x+36 , player_ship2.rect.y+5, -10)
+                            bullet2 = Bullet(player_ship2.rect.x+67 , player_ship2.rect.y+5, -10)
+                            all_bullets_player2_list.add(bullet1,bullet2)
+                            all_bullets_list.add(bullet1,bullet2)
+                            all_sprites_list.add(bullet1,bullet2)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
+                        if (player_ship2.level == 3):#level 3
+                            bullet1 = Bullet(player_ship2.rect.x+8 , player_ship2.rect.y+30, -10)
+                            bullet2 = Bullet(player_ship2.rect.x+25 , player_ship2.rect.y+15, -10)
+                            bullet3 = Bullet(player_ship2.rect.x+79 , player_ship2.rect.y+15, -10)
+                            bullet4 = Bullet(player_ship2.rect.x+97 , player_ship2.rect.y+30, -10)
+                            all_bullets_player2_list.add(bullet1,bullet2,bullet3,bullet4)
+                            all_bullets_list.add(bullet1,bullet2,bullet3,bullet4)
+                            all_sprites_list.add(bullet1,bullet2,bullet3,bullet4)
+                            pygame.mixer.Sound('sounds/shoot.wav').play()
                 # Pass events to main_menu
             self.pause_menu.mainloop(events)
 
@@ -334,11 +444,28 @@ class SpaceInvaders(object):
 
                        
             # detect bullet sprites that collide with alien sprites, if so the sprites get killed from their group and points are added to the score
-            collided_bullets_aliens = pygame.sprite.groupcollide(all_bullets_list, aliens, True, True, False)
-            if collided_bullets_aliens.values():
-                for killed_aliens in collided_bullets_aliens.values():
-                    for killed_alien in killed_aliens:
-                        point_counter+=killed_alien.points
+            if not multiplayer:
+                collided_bullets_aliens = pygame.sprite.groupcollide(all_bullets_list, aliens, True, True, False)
+                if collided_bullets_aliens.values():
+                    for killed_aliens in collided_bullets_aliens.values():
+                        for killed_alien in killed_aliens:
+                            point_counter+=killed_alien.points
+            else:
+                collided_bullets_aliens = pygame.sprite.groupcollide(all_bullets_player1_list, aliens, True, False, False)
+                if collided_bullets_aliens.values():
+                    for killed_aliens in collided_bullets_aliens.values():
+                        for killed_alien in killed_aliens:
+                            if killed_alien.type == 5:
+                                point_counter+=killed_alien.points
+                                killed_alien.kill()
+
+                collided_bullets_aliens = pygame.sprite.groupcollide(all_bullets_player2_list, aliens, True, False, False)
+                if collided_bullets_aliens.values():
+                    for killed_aliens in collided_bullets_aliens.values():
+                        for killed_alien in killed_aliens:
+                            if killed_alien.type == 4:
+                                point_counter+=killed_alien.points
+                                killed_alien.kill()
 
             
             # creates bonus ship. random with the propability 2 % and takes track of it
@@ -365,20 +492,33 @@ class SpaceInvaders(object):
             asteroid_hit = pygame.sprite.groupcollide(all_asteroids_list, aliens, True, False)
 
             # detect if alien bullets hit the player ship. if so the bullet gets killed and the player lifes get reduced by 1. Death animation gets played.
-            if (pygame.sprite.spritecollideany(player_ship, all_alien_bullets_list) is not None) and player_ship.got_hit == False:                  
-                player_ship.get_hit()
+            if (pygame.sprite.spritecollideany(player_ship1, all_alien_bullets_list) is not None) and player_ship1.got_hit == False:                  
+                player_ship1.get_hit()
                 pygame.mixer.Sound('sounds/shipexplosion.wav').play()
                 if len(player_life_sprite_list)>=1:
                     all_sprites_list.remove(player_life_sprite_list[-1])
                     player_life_sprite_list = player_life_sprite_list[:-1]
-                   
+            
+            if multiplayer:
+                 # detect if alien bullets hit the second player ship. if so the bullet gets killed and the player lifes get reduced by 1. Death animation gets played.
+                if (pygame.sprite.spritecollideany(player_ship2, all_alien_bullets_list) is not None) and player_ship2.got_hit == False:                  
+                    player_ship2.get_hit()
+                    pygame.mixer.Sound('sounds/shipexplosion.wav').play()
+                    if len(player_life_sprite_list)>=1:
+                        all_sprites_list.remove(player_life_sprite_list[-1])
+                        player_life_sprite_list = player_life_sprite_list[:-1]
+
+                if pygame.sprite.spritecollideany(player_ship2, aliens) is not None:
+                    player_life_sprite_list.clear()                                
+
+
             # check if aliens are on bottom of screen. if so --> game over       
             for alien in aliens:
                 if alien.rect.y >= SCREEN_HEIGHT-40:
                     player_life_sprite_list.clear()
                     
             # check if aliens collide with the player ship. if so --> game over      
-            if pygame.sprite.spritecollideany(player_ship, aliens) is not None:
+            if pygame.sprite.spritecollideany(player_ship1, aliens) is not None:
                 player_life_sprite_list.clear()                                
 
             # --- Drawing code --------------------------------------------------------
@@ -579,10 +719,7 @@ class SpaceInvaders(object):
                                         color_selected=COLOR_WHITE,
                                         font=pygameMenu.font.FONT_BEBAS,
                                         font_color=COLOR_BLACK,
-                                        font_size_title=30,
-                                        font_title=pygameMenu.font.FONT_8BIT,
                                         menu_color=MENU_BACKGROUND_COLOR,
-                                        menu_color_title=COLOR_WHITE,
                                         menu_height=int(WINDOW_SIZE[1] * 0.6),
                                         menu_width=int(WINDOW_SIZE[0] * 0.6),
                                         onclose=pygameMenu.events.DISABLE_CLOSE,
@@ -665,10 +802,11 @@ class SpaceInvaders(object):
 
         self.play_menu.add_option('Start', self.play_function, DIFFICULTY)
 
-        self.play_menu.add_selector('Select difficulty',
-                            [('1 - Easy', 'EASY'),
-                                ('2 - Medium', 'MEDIUM'),
-                                ('3 - Hard', 'HARD')],
+        self.play_menu.add_selector('Select ',
+                            [('difficulty 1 - Easy', 'EASY'),
+                                ('difficulty 2 - Medium', 'MEDIUM'),
+                                ('difficulty 3 - Hard', 'HARD'),
+                                ('Multiplayer', 'MULTI')],
                             onchange=self.change_difficulty,
                             selector_id='select_difficulty')
         self.play_menu.add_option('Return to main menu', pygameMenu.events.BACK)
