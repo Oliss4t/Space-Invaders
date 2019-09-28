@@ -1,6 +1,11 @@
 # Space-Invaders
 # by Tassilo Henninger
 
+pycrypto
+pygame
+pygame-menu
+
+
 This Game was programmed during a code competition.
 Feel free to use the code 
 

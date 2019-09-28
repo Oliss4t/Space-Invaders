@@ -1,12 +1,8 @@
 # Space Invaders
 # Created by Tassilo Henninger
 
-import sys
-import os
-import pygame
-import pygameMenu
-import json
-import random
+import sys, os, pygame ,pygameMenu ,json ,random ,hashlib 
+import aes_encryption
 from ship import Ship
 from alien import Alien
 from bonus import Bonus
@@ -31,10 +27,11 @@ DIFFICULTY = ['EASY']
 FPS = 60.0
 MENU_BACKGROUND_COLOR = (228, 55, 36)
 WINDOW_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
-SCOREFILENAME = "gamescores.json"
-FILEMODE = "r+"
-FILETEXT = "Player: {}; Mode: {}; Score: {}\n"
-
+SCOREFILENAME = "gamescores.json.enc"
+#FILEMODE = "r+"
+#FILETEXT = "Player: {}; Mode: {}; Score: {}\n"
+PASSWORD = 'SuperSavePasswordThatAirbusWillNeverFindOut'.encode()
+KEY = hashlib.sha256(PASSWORD).digest()
 
 
 class SpaceInvaders(object):
@@ -255,7 +252,7 @@ class SpaceInvaders(object):
         elif difficulty == 'MULTI':
             asteroid_init_params = {"size":10,"count":3,"width":100,"heigt":60,"color":COLOR_GREY}
             alien_init_params = {"columns":6,"rows":4,"alien_type_list":[3,2,1,1]}
-            player_lives = 5
+            player_lives = 10
             lvl2_points=150
             lvl3_points=500
             multiplayer = True
@@ -544,8 +541,7 @@ class SpaceInvaders(object):
         self.music_game_over = pygame.mixer.Sound('sounds/GameOver2.wav').play(-1)
         player = self.player_name_entering(difficulty,point_counter)
         self.highscore= [player,difficulty,point_counter]
-        print (self.highscore)
-        self.save_player_score(player,difficulty,point_counter)
+        aes_encryption.save_player_score(player,difficulty,point_counter,KEY,SCOREFILENAME)
         self.pause_menu.reset(1)
         self.pause_menu.disable()
         self.music_game_over.stop()
@@ -613,7 +609,6 @@ class SpaceInvaders(object):
                         textBox.update()
                     if e.key == pygame.K_RETURN:
                         if len(textBox.text) > 0:
-                            print (textBox.text)
                             return textBox.text
                             running = False
 
@@ -623,45 +618,6 @@ class SpaceInvaders(object):
         :return: None
         """
         self.screen.blit(self.background, (0, 0))
-
-    def read_highscore(self):
-        """
-        This function reads the highscore from json file.
-        :return param: list with all highscore strings
-        :return type: list
-        """
-        with open(SCOREFILENAME, "r") as jsonFile:
-                data = json.load(jsonFile)
-        highscore_list = []
-        for d in data:
-            highscore_list.append('{:^13} {:^13} {:^13}'.format("Mode: "+d,"Player: "+ data[d][0]['player'],"Score: "+ str(data[d][0]['score'])))
-        return highscore_list
-
-    def save_player_score(self,player,difficulty,point_counter):
-        """
-        This function saves the player score.
-        :param player: string representing the game player
-        :type player: string
-        :param difficulty: string representing the game difficulty
-        :type difficulty: string
-        :param score: string representing the game highscore
-        :type score: string
-        :return: None
-        """
-        try:
-            with open(SCOREFILENAME, "r") as jsonFile:
-                data = json.load(jsonFile)
-            if difficulty not in data:
-                data[difficulty] = ([{'player':player,'score':point_counter}])
-                with open(SCOREFILENAME, "w") as jsonFile:
-                    json.dump(data, jsonFile)
-            elif data[difficulty][0]['score'] < point_counter:
-                data[difficulty][0]['score'] = point_counter
-                data[difficulty][0]['player'] = player
-                with open(SCOREFILENAME, "w") as jsonFile:
-                    json.dump(data, jsonFile)
-        except Exception as e:
-            print("exceptiontext: "+str(e))
 
     def leave_game(self):
         """
@@ -702,12 +658,12 @@ class SpaceInvaders(object):
                             window_height=WINDOW_SIZE[1],
                             window_width=WINDOW_SIZE[0]
                             )
-
-        self.pause_menu.add_option('Back to Menu', self.leave_game)
-    
-        self.pause_menu.add_option('Reset Game',self.reset_game)
-
+  
         self.pause_menu.add_option('Return to game', self.pause_menu.disable)
+        self.pause_menu.add_option('Reset Game',self.reset_game)
+        self.pause_menu.add_option('Back to Menu', self.leave_game)
+
+        
 
     def create_about_menu(self):
         """
@@ -757,7 +713,7 @@ class SpaceInvaders(object):
                             window_width=WINDOW_SIZE[0]
                             )
 
-        HIGHSCORE_LIST = self.read_highscore()
+        HIGHSCORE_LIST = aes_encryption.read_highscore(KEY,SCOREFILENAME)
         for line in HIGHSCORE_LIST:
             self.highscore_menu.add_line(line) 
         self.highscore_menu.add_option('Return to Menu', pygameMenu.events.BACK)
