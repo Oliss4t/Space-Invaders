@@ -15,8 +15,9 @@ Code is commented via docstring, so you can get info of an method or class via h
 
 after all aliens are killed , the next round starts , have fun
 
-difficulties- lifes
 
+Features
+difficulties- lifes - ateroid size and level up ranks
 ship envolement
 bonus ships
 
