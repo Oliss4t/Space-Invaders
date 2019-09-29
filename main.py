@@ -40,6 +40,8 @@ class SpaceInvaders(object):
     """
     def __init__(self):
         pygame.init()
+        gameIcon = pygame.image.load("images\\life.png")
+        pygame.display.set_icon(gameIcon)
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.screen = pygame.display.set_mode(WINDOW_SIZE)
         pygame.display.set_caption("Space Invaders")
@@ -218,6 +220,7 @@ class SpaceInvaders(object):
         :return: None
         """
         self.music_menu.stop()
+        pygame.mouse.set_visible(0)
         self.music_game=pygame.mixer.Sound('sounds/gamemusic.wav').play(-1)
         point_counter = 0
         round_counter = 1

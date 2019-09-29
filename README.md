@@ -4,7 +4,7 @@
 pycrypto
 pygame
 pygame-menu
-
+from Crypto.Cipher import AES
 
 This Game was programmed during a code competition.
 Feel free to use the code 
