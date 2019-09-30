@@ -29,11 +29,11 @@ The game is developed in python 3.7 using the libraries: pycryptodome, pygame, p
 
 # How to play the game
 The game is played on 1200/900 resolution.
+The player game score is in the left top, the current game round in the middle top and the player lives on the top right hand side.
 ## Controls
 * Move: left and right arrow key or 'a' and 'd' key
 * Shoot: SPACEBAR or RETURN + 'L-' and 'R-' Shift in multiplayer mode
 * Pause: ESC key
-The player game score is in the left top, the current game round in the middle top and the player lives on the top right hand side.
 
 ---
 ![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gamemenu.PNG)
