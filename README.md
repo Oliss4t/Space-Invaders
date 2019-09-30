@@ -37,9 +37,9 @@ The player game score is in the left top, the current game round in the middle t
 
 
 ---
-Thanks for checking out my game and I hope you enjoy it! Feel free to contact me.
-Tassilo Henninger
-[tassilo.henninger@gmail.com](mailto:tassilo.henninger@gmail.com)
+>Thanks for checking out my game and I hope you enjoy it! Feel free to contact me.
+>Tassilo Henninger
+>[tassilo.henninger@gmail.com](mailto:tassilo.henninger@gmail.com)
 ---
 ![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gamemenu.PNG)
 ---
