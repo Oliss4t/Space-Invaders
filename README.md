@@ -8,7 +8,7 @@ The code is commented via docstring, so you can get info of a method or class vi
 The goal was to develop your own version of Space Invaders, including the basic game mechanics like:
 * a controllable defense ship
 * aliens attacking from the top of the screen
-* and the alies should be able to come closer and shoot
+* and the aliens should be able to come closer and shoot
 
 # Features
 In addition to the basic game mechanics I implemented the following features:
