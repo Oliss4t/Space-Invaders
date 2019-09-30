@@ -12,7 +12,7 @@ The goal was to develop your own version of Space Invaders, including the basic 
 
 # Features
 In addition to the basic game mechanics I implemented the following features:
-* player ship envolement (lvl 1: one bullet, lvl 2: two bullets, lvl 3: four bullets)
+* player ship evolvement (lvl 1: one bullet, lvl 2: two bullets, lvl 3: four bullets)
 * bonus alien ship (give 100 extra points, but are hard to hit)
 * asteroid blockers (protect the playership from alien bullets)
 * progressing game diffculty, by changing the amount of spawning aliens after each completed game round.
