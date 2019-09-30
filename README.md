@@ -13,7 +13,7 @@ The goal was to develop your own version of Space Invaders, including the basic 
 # Features
 In addition to the basic game mechanics I implemented the following features:
 * player ship evolvement (lvl 1: one bullet, lvl 2: two bullets, lvl 3: four bullets)
-* bonus alien ship (give 100 extra points, but are hard to hit)
+* bonus alien ship (give 100 extra points, but is hard to hit)
 * asteroid blockers (protect the playership from alien bullets)
 * progressing game diffculty, by changing the amount of spawning aliens after each completed game round.
 * different game difficulties (regarding amount of lives, levelup ranges, amount of asteroid blockers and alien rows and columns at the start)
@@ -38,13 +38,13 @@ The game is played on 1200/900 resolution.
 
 The player games score is on the left hand side, the current game round in the middle top and the player lives on the top right hand side.
 ---
-![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gamemenu.png)
+![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gamemenu.PNG)
 ---
-![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/game_singleplayer.png)
+![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/game_singleplayer.PNG)
 ---
-![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/game_multiplayer.png)
+![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/game_multiplayer.PNG)
 ---
-![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gameover.png)
+![alt text](https://github.com/Oliss4t/Space-Invaders/blob/docu/readme_images/gameover.PNG)
 ---
 
 
