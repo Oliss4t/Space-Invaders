@@ -255,7 +255,7 @@ class SpaceInvaders(object):
         elif difficulty == 'MULTI':
             asteroid_init_params = {"size":10,"count":3,"width":100,"heigt":60,"color":COLOR_GREY}
             alien_init_params = {"columns":6,"rows":4,"alien_type_list":[3,2,1,1]}
-            player_lives = 10
+            player_lives = 6
             lvl2_points=150
             lvl3_points=500
             multiplayer = True
