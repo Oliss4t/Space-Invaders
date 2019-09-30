@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['c:\\Users\\henni\\OneDrive - doctorseyes GmbH\\Programming\\Airbus-Comp\\Space-Invaders'],
+             pathex=['C:\\Users\\henni\\OneDrive - doctorseyes GmbH\\Programming\\Airbus-Comp\\Space-Invaders'],
              binaries=[],
              datas=[('C:\\Users\\henni\\Anaconda3\\envs\\python\\lib\\site-packages\\pygameMenu', './pygameMenu')],
              hiddenimports=[],

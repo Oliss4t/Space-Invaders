@@ -28,8 +28,6 @@ FPS = 60.0
 MENU_BACKGROUND_COLOR = (228, 55, 36)
 WINDOW_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 SCOREFILENAME = "gamescores.json.enc"
-#FILEMODE = "r+"
-#FILETEXT = "Player: {}; Mode: {}; Score: {}\n"
 PASSWORD = 'SuperSavePasswordThatAirbusWillNeverFindOut'.encode()
 KEY = hashlib.sha256(PASSWORD).digest()
 
